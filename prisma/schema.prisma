@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model invoice_products {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_id BigInt   @db.UnsignedBigInt
+  product_id BigInt   @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  qty        String   @db.VarChar(200)
+  sale_price String   @db.VarChar(200)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  invoices   invoices @relation(fields: [invoice_id], references: [id], map: "invoice_products_invoice_id_foreign")
+  products   products @relation(fields: [product_id], references: [id], map: "invoice_products_product_id_foreign")
+  users      users    @relation(fields: [user_id], references: [id], map: "invoice_products_user_id_foreign")
+
+  @@index([invoice_id], map: "invoice_products_invoices_id_foreign")
+  @@index([product_id], map: "invoice_products_products_id_foreign")
+  @@index([user_id], map: "invoice_products_user_id_foreign")
+}
+
+model invoices {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_products invoice_products[]
+  total            String             @db.VarChar(50)
+  discount         String             @db.VarChar(50)
+  vat              String             @db.VarChar(50)
+  payable          String             @db.VarChar(50)
+  user_id          BigInt             @db.UnsignedBigInt
+  customer_id      BigInt             @db.UnsignedBigInt
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  updated_at       DateTime           @default(now()) @db.Timestamp(0)
+  customers        customers          @relation(fields: [user_id], references: [id], map: "invoices_customers_id_foreign")
+  users            users              @relation(fields: [id], references: [id], map: "invoices_users_id_foreign")
+
+  @@index([user_id], map: "invoices_customers_id_foreign")
+  @@index([id], map: "invoices_users_id_foreign")
+}
+
+model products {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_products invoice_products[]
+  user_id          BigInt             @db.UnsignedBigInt
+  category_id      BigInt             @db.UnsignedBigInt
+  name             String             @db.VarChar(50)
+  price            String             @db.VarChar(50)
+  unit             String             @db.VarChar(50)
+  img_url          String             @db.VarChar(50)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  updated_at       DateTime           @default(now()) @db.Timestamp(0)
+  categories       categories         @relation(fields: [user_id], references: [id], map: "products_categories_id_foreign")
+  users            users              @relation(fields: [id], references: [id], map: "products_user_id_foreign")
+
+  @@index([user_id], map: "products_categories_id_foreign")
+  @@index([id], map: "products_user_id_foreign")
+}
+
+model users {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_products invoice_products[]
+  firstName        String             @db.VarChar(50)
+  lastName         String             @db.VarChar(50)
+  email            String             @db.VarChar(50)
+  mobile           String             @db.VarChar(50)
+  password         String             @db.VarChar(50)
+  otp              String             @db.VarChar(50)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  updated_at       DateTime           @default(now()) @db.Timestamp(0)
+  invoices         invoices[]
+  products         products[]
+  categories       categories[]
+  customers        customers[]
+}
+
+model customers {
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String     @db.VarChar(50)
+  email      String     @db.VarChar(50)
+  mobile     String     @db.VarChar(50)
+  user_id    BigInt     @db.UnsignedBigInt
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  updated_at DateTime   @default(now()) @db.Timestamp(0)
+  invoices   invoices[]
+  users      users      @relation(fields: [id], references: [id], map: "customers_user_id_Foreign")
+
+  @@index([id], map: "customers_user_id_Foreign")
+}
+
+model categories {
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String     @db.VarChar(50)
+  user_id    BigInt     @db.UnsignedBigInt
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  updated_at DateTime   @default(now()) @db.Timestamp(0)
+  products   products[]
+  users      users      @relation(fields: [id], references: [id], map: "categories_user_id_foreign")
+
+  @@index([id], map: "categories_user_id_foreign")
+}
